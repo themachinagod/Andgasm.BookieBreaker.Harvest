@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Andgasm.BookieBreaker.Harvest.WhoScored
+namespace Andgasm.BookieBreaker.Harvest
 {
     public class HarvestHelper
     {
