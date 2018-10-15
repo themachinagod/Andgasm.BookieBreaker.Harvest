@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,11 +10,48 @@ using System.Threading.Tasks;
 
 namespace Andgasm.BookieBreaker.Harvest
 {
-    public class HarvestRequestManager
+    public class HarvestRequestManager // use as singleton to track requests and apply throttles
     {
         #region Properties
         public bool LastRequestFailed { get; set; }
         ILogger<HarvestRequestManager> _logger;
+
+        double _maxRequestsPerMin = 60D;
+        TimeSpan _avgRequestLength = new TimeSpan();
+        List<TimeSpan> _requestTimes = new List<TimeSpan>();
+
+        public double MaxAvgRequestLength //(seconds)
+        {
+            get
+            {
+                return (_maxRequestsPerMin / 60D);
+            }
+        }
+
+        public double AvgRequestLength //(seconds)
+        {
+            get
+            {
+                return _requestTimes.Average(x => x.TotalSeconds);
+            }
+        }
+
+        public double ForecastRequestsPerMin
+        {
+            get
+            {
+                return (60D / AvgRequestLength);
+            }
+        }
+
+        public int CurrentThrottlePause //(seconds)
+        {
+            get
+            {
+                // need to work out how much over the max req
+                return (int)(AvgRequestLength - MaxAvgRequestLength);
+            }
+        }
         #endregion
 
         public HarvestRequestManager(ILogger<HarvestRequestManager> logger)
@@ -23,6 +61,8 @@ namespace Andgasm.BookieBreaker.Harvest
 
         public async Task<HtmlDocument> MakeRequest(string url, HarvestRequestContext ctx, bool isretry = false)
         {
+            var requestTimer = new Stopwatch();
+            requestTimer.Start();
             HtmlDocument doc = null;
             try
             {
@@ -71,6 +111,9 @@ namespace Andgasm.BookieBreaker.Harvest
                 _logger.LogDebug(string.Format("Web request was cancelled & failed to complete: {0}", url));
                 throw ex;
             }
+            await Task.Delay(CurrentThrottlePause);
+            _requestTimes.Add(requestTimer.Elapsed);
+            requestTimer.Stop();
             return doc;
         }
 
