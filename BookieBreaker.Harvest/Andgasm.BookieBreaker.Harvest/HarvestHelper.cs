@@ -40,25 +40,6 @@ namespace Andgasm.BookieBreaker.Harvest
             return ctx;
         }
 
-        public async static Task<HtmlAgilityPack.HtmlDocument> AttemptRequest(string url, string accept, string referer, string lastmodekey, string cookiestring, string acceptlang, bool isxhr, HarvestRequestManager rm, string exitstring = "'Model-Last-Mode': '", bool upgradeinsecure = false, bool cachecontrol = false)
-        {
-            HtmlAgilityPack.HtmlDocument p = null;
-            int attempts = 0;
-            //do
-            //{
-                if (attempts > 0)
-                {
-                    Thread.Sleep(10000);
-                }
-                HarvestRequestContext ctx = HarvestHelper.ConstructRequestContext(lastmodekey, accept, referer, cookiestring, acceptlang, isxhr, upgradeinsecure, cachecontrol);
-                p = await rm.MakeRequest(url, ctx);
-                attempts++;
-                //if (rm.LastRequestFailed) continue;
-                if (attempts > 3) return null;
-            //} while (!p.DocumentNode.InnerText.Contains(exitstring));
-            return p;
-        }
-
         public static string GetLastModeKey(string rootdoc)
         {
             var rawdata = rootdoc;

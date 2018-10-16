@@ -28,7 +28,7 @@ namespace Andgasm.BookieBreaker.Harvest
         {
             get
             {
-                return (60D / MaxRequestsPerMin); // seconds
+                return (60000D / MaxRequestsPerMin); // milliseconds
             }
         }
 
@@ -37,7 +37,7 @@ namespace Andgasm.BookieBreaker.Harvest
             get
             {
                 if (_requestTimes == null || _requestTimes.Count == 0) return BenchmarkAvgRequestLength;
-                return _requestTimes.Average(x => x.TotalSeconds);  // seconds
+                return _requestTimes.Average(x => x.TotalMilliseconds);  // milliseconds
             }
         }
 
@@ -46,7 +46,7 @@ namespace Andgasm.BookieBreaker.Harvest
             get
             {
                 var throttlesecs = (BenchmarkAvgRequestLength - AvgRequestLength);
-                var throttlemsecs = (int)(throttlesecs * 1000);
+                var throttlemsecs = (int)(throttlesecs);
                 if (throttlemsecs > 0) return new TimeSpan(0, 0, 0, 0, throttlemsecs);
                 else return new TimeSpan(0, 0, 0);
             }
@@ -127,6 +127,8 @@ namespace Andgasm.BookieBreaker.Harvest
         private async Task ApplyRequestThrottle(Stopwatch requesttimer)
         {
             _requestTimes.Add(requesttimer.Elapsed);
+            _logger.LogDebug($"Average Request Execution Time  (milliseconds): {AvgRequestLength}");
+            _logger.LogDebug($"Current Request Execution Time  (milliseconds): {requesttimer.Elapsed.TotalMilliseconds}");
             _logger.LogDebug($"Executing request throttle for (milliseconds): {CurrentThrottlePause.TotalMilliseconds}");
             await Task.Delay(CurrentThrottlePause);
             requesttimer.Stop();
