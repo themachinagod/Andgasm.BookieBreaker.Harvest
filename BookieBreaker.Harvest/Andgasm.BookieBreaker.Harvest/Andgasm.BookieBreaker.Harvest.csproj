@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>Danny Brown</Authors>
     <Company>Andgasm Software Solutions</Company>
-    <Description>General harvest lib for bookie breaker extraction services.</Description>
+    <Description>General harvest lib for bookie breaker extraction services, supports request management and throttling.</Description>
     <RepositoryUrl>https://github.com/themachinagod/Andgasm.BookieBreaker.Harvest</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>BookieBreaker, Lib, Harvest</PackageTags>
