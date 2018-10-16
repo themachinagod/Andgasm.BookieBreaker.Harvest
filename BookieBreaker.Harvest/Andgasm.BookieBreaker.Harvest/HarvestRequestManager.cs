@@ -10,55 +10,61 @@ using System.Threading.Tasks;
 
 namespace Andgasm.BookieBreaker.Harvest
 {
-    public class HarvestRequestManager // use as singleton to track requests and apply throttles
+    // use as singleton to track requests and apply throttles
+    // TODO: the _requesttimes collection will grow and grow unless we trim this every so often without losing data accuracy
+    public class HarvestRequestManager 
     {
-        #region Properties
-        public bool LastRequestFailed { get; set; }
-        ILogger<HarvestRequestManager> _logger;
-
-        double _maxRequestsPerMin = 60D;
-        TimeSpan _avgRequestLength = new TimeSpan();
+        #region Fields
         List<TimeSpan> _requestTimes = new List<TimeSpan>();
+        #endregion
 
-        public double MaxAvgRequestLength //(seconds)
+        #region Properties
+        ILogger<HarvestRequestManager> _logger;
+        public bool LastRequestFailed { get; set; }
+        private double MaxRequestsPerMin { get; set; }
+        public Stopwatch RunningTimer { get; set; }
+
+        public double BenchmarkAvgRequestLength 
         {
             get
             {
-                return (_maxRequestsPerMin / 60D);
+                return (60D / MaxRequestsPerMin); // seconds
             }
         }
 
-        public double AvgRequestLength //(seconds)
+        public double AvgRequestLength 
         {
             get
             {
-                return _requestTimes.Average(x => x.TotalSeconds);
+                if (_requestTimes == null || _requestTimes.Count == 0) return BenchmarkAvgRequestLength;
+                return _requestTimes.Average(x => x.TotalSeconds);  // seconds
             }
         }
 
-        public double ForecastRequestsPerMin
+        public TimeSpan CurrentThrottlePause 
         {
             get
             {
-                return (60D / AvgRequestLength);
-            }
-        }
-
-        public int CurrentThrottlePause //(seconds)
-        {
-            get
-            {
-                // need to work out how much over the max req
-                return (int)(AvgRequestLength - MaxAvgRequestLength);
+                var throttlesecs = (BenchmarkAvgRequestLength - AvgRequestLength);
+                var throttlemsecs = (int)(throttlesecs * 1000);
+                if (throttlemsecs > 0) return new TimeSpan(0, 0, 0, 0, throttlemsecs);
+                else return new TimeSpan(0, 0, 0);
             }
         }
         #endregion
 
-        public HarvestRequestManager(ILogger<HarvestRequestManager> logger)
+        #region Constructors
+        public HarvestRequestManager(ILogger<HarvestRequestManager> logger, int maxrequestspermin = 30)
         {
             _logger = logger;
-        }
+            MaxRequestsPerMin = maxrequestspermin;
 
+            RunningTimer = new Stopwatch();
+            RunningTimer.Start();
+        }
+        #endregion
+
+        #region Request Execution
         public async Task<HtmlDocument> MakeRequest(string url, HarvestRequestContext ctx, bool isretry = false)
         {
             var requestTimer = new Stopwatch();
@@ -82,42 +88,51 @@ namespace Andgasm.BookieBreaker.Harvest
                     foreach (var c in ctx.Cookies) req.Headers.Add(c.Key, c.Value);
                 }
 
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
+                InitialiseCertificates();
                 using (WebResponse resp = await req.GetResponseAsync())
                 {
                     
                     using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
                     {
                         doc = new HtmlDocument();
-                        var data = await sr.ReadToEndAsync();
-                        doc.LoadHtml(data.Trim());
+                        doc.LoadHtml((await sr.ReadToEndAsync()).Trim());
                         if (doc.DocumentNode.InnerText.Contains("Request unsuccessful"))
                         {
                             throw new Exception("Request did not fail but reurned an Incapsula request was unsuccessful!");
                         }
-                        _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", data.Length));
+                        _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", doc.DocumentNode.OuterLength));
                     }
                 }
                 LastRequestFailed = false;
             }
             catch(Exception ex)
             {
-                // DBr: we need a significant pause here in case the failure is due to request throttling (403)
                 LastRequestFailed = true;
                 _logger.LogDebug(string.Format("Web request failed as follows: {0}", ex.Message));
-                _logger.LogDebug("Pausing to avoid request throttle!");
-                await Task.Delay(20000);
                 _logger.LogDebug(string.Format("Web request was cancelled & failed to complete: {0}", url));
                 throw ex;
             }
-            await Task.Delay(CurrentThrottlePause);
-            _requestTimes.Add(requestTimer.Elapsed);
-            requestTimer.Stop();
+            await ApplyRequestThrottle(requestTimer);
             return doc;
         }
+        #endregion
 
-        public bool AcceptAllCertifications(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certification, 
+        #region Helpers
+        private void InitialiseCertificates()
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
+        }
+
+        private async Task ApplyRequestThrottle(Stopwatch requesttimer)
+        {
+            _requestTimes.Add(requesttimer.Elapsed);
+            _logger.LogDebug($"Executing request throttle for (milliseconds): {CurrentThrottlePause.TotalMilliseconds}");
+            await Task.Delay(CurrentThrottlePause);
+            requesttimer.Stop();
+        }
+
+        private bool AcceptAllCertifications(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certification, 
                                                            System.Security.Cryptography.X509Certificates.X509Chain chain, 
                                                            System.Net.Security.SslPolicyErrors sslPolicyErrors)
         {
@@ -135,41 +150,8 @@ namespace Andgasm.BookieBreaker.Harvest
             agents.Add("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246");
             agents.Add("Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0");
             agents.Add("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
-            return agents.Random(); // TODO: random leanup!!
+            return agents.OrderBy(x => Guid.NewGuid()).First(); // hacked random
         }
-    }
-
-    public static class ListExtensions
-    {
-        public static bool AddIfNotExists<T>(this IList<T> collection, T item)
-        {
-            if (!collection.Contains(item))
-            {
-                collection.Add(item);
-                return true;
-            }
-            return false;
-        }
-
-        public static class EnumerableHelper<E>
-        {
-            private static Random r;
-
-            static EnumerableHelper()
-            {
-                r = new Random();
-            }
-
-            public static T Random<T>(IEnumerable<T> input)
-            {
-                return input.ElementAt(r.Next(input.Count()));
-            }
-
-        }
-
-        public static T Random<T>(this IEnumerable<T> input)
-        {
-            return EnumerableHelper<T>.Random(input);
-        }
+        #endregion
     }
 }
