@@ -1,4 +1,3 @@
-using Andgasm.BookieBreaker.Harvest;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;

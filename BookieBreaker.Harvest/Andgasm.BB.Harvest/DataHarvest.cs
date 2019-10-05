@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Andgasm.BookieBreaker.Harvest
+namespace Andgasm.BB.Harvest
 {
     public abstract class DataHarvest : IDataHarvest
     {

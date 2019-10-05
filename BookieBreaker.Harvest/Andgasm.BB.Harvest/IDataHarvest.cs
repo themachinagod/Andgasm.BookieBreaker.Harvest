@@ -1,7 +1,7 @@
 ﻿
 using System.Threading.Tasks;
 
-namespace Andgasm.BookieBreaker.Harvest
+namespace Andgasm.BB.Harvest
 {
     public interface IDataHarvest
     {

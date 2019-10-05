@@ -8,7 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Andgasm.BookieBreaker.Harvest
+namespace Andgasm.BB.Harvest
 {
     // use as singleton to track requests and apply throttles
     // TODO: the _requesttimes collection will grow and grow unless we trim this every so often without losing data accuracy

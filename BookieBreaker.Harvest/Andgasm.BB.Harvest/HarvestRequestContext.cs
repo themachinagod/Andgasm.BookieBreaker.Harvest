@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Andgasm.BookieBreaker.Harvest
+namespace Andgasm.BB.Harvest
 {
     public class HarvestRequestContext
     {

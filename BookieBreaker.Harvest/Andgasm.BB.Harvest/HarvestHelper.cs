@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Andgasm.BookieBreaker.Harvest
+namespace Andgasm.BB.Harvest
 {
     public class HarvestHelper
     {
