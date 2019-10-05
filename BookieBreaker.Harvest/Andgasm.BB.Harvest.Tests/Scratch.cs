@@ -1,12 +1,15 @@
+using Andgasm.BookieBreaker.Harvest;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Threading.Tasks;
 
-namespace Andgasm.BookieBreaker.Harvest.Tests
+namespace Andgasm.BB.Harvest.Tests
 {
-    public class UnitTest1
+    [TestClass]
+    public class Scratch
     {
-        [Fact]
-        public async void Test1()
+        [TestMethod]
+        public async Task TestMethod1()
         {
             var url = @"https://httpbin.org";
             HarvestRequestManager hrm = new HarvestRequestManager(new NullLogger<HarvestRequestManager>(), 2);
@@ -17,6 +20,5 @@ namespace Andgasm.BookieBreaker.Harvest.Tests
             }
             var ranfor = hrm.RunningTimer.Elapsed;
         }
-        
     }
 }
