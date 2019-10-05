@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Danny Brown</Authors>
+    <Company>Andgasm</Company>
+    <Description>General harvest lib for bookie breaker extraction services, supports request management and throttling as well as cookie busters.</Description>
+    <Product>Andgasm.BookieBreaker.Harvest</Product>
+    <Version>0.0.7</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/themachinagod/Andgasm.BookieBreaker.Harvest</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>BookieBreaker, Harvest</PackageTags>
+    <PackageId>Andgasm.BookieBreaker.Harvest</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
