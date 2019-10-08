@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using Andgasm.BookieBreaker.Harvest.WhoScored;
+using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace Andgasm.BookieBreaker.Harvest
     {
         #region Fields
         List<TimeSpan> _requestTimes = new List<TimeSpan>();
+        Random random = new Random();
         #endregion
 
         #region Properties
@@ -73,32 +75,31 @@ namespace Andgasm.BookieBreaker.Harvest
             try
             {
                 _logger.LogDebug(string.Format("Making web request: {0}", url));
-                HttpWebRequest req = WebRequest.CreateHttp(url);
-                if (ctx != null)
-                {
-                    req.Timeout = ctx.Timeout;
-                    req.Method = ctx.Method;
-                    req.Host = ctx.Host;
-                    req.Accept = ctx.Accept;
-                    req.UserAgent = SpoofUserAgent();
-                    req.Referer = ctx.Referer;
-                    req.Credentials = CredentialCache.DefaultCredentials;
-                    req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                    foreach(var h in ctx.Headers) req.Headers.Add(h.Key, h.Value);
-                    foreach (var c in ctx.Cookies) req.Headers.Add(c.Key, c.Value);
-                }
-
+                HttpWebRequest req = InitialiseRequestFromContext(ctx, url);
                 InitialiseCertificates();
                 using (WebResponse resp = await req.GetResponseAsync())
                 {
-                    
                     using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
                     {
                         doc = new HtmlDocument();
                         doc.LoadHtml((await sr.ReadToEndAsync()).Trim());
                         if (doc.DocumentNode.InnerText.Contains("Request unsuccessful"))
                         {
-                            throw new Exception("Request did not fail but reurned an Incapsula request was unsuccessful!");
+                            var realisedcookie = "";
+                            if (!isretry)
+                            {
+                                _logger.LogDebug("Request did not fail but reurned an Incapsula request was unsuccessful - executing hard throttle of 2s!");
+                                _logger.LogDebug($"Updating Incapsula cookies from response headers, new cookie is '{realisedcookie}'");
+                                await CookieInitialiser.RefreshCookieForResponseContext(resp, ctx);
+                                await Task.Delay(2000);
+                                return await MakeRequest(url, ctx, true);
+                            }
+                            else
+                            {
+                                _logger.LogDebug("Incapsula request has been rejected even after a retry - executing hard throttle of 5s!");
+                                await Task.Delay(5000);
+                                throw new Exception($"Incapsula request has been rejected even after a retry for request url '{url}'!");
+                            }
                         }
                         _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", doc.DocumentNode.OuterLength));
                     }
@@ -109,8 +110,8 @@ namespace Andgasm.BookieBreaker.Harvest
             {
                 LastRequestFailed = true;
                 _logger.LogDebug(string.Format("Web request failed as follows: {0}", ex.Message));
-                _logger.LogDebug(string.Format("Web request was cancelled & failed to complete: {0}", url));
-                throw ex;
+                _logger.LogDebug(string.Format("Web request was CANCELLED & failed to complete: {0}", url));
+                return null;
             }
             await ApplyRequestThrottle(requestTimer);
             return doc;
@@ -118,6 +119,25 @@ namespace Andgasm.BookieBreaker.Harvest
         #endregion
 
         #region Helpers
+        private HttpWebRequest InitialiseRequestFromContext(HarvestRequestContext ctx, string url)
+        {
+            HttpWebRequest req = WebRequest.CreateHttp(url);
+            if (ctx != null)
+            {
+                req.Timeout = ctx.Timeout;
+                req.Method = ctx.Method;
+                req.Host = ctx.Host;
+                req.Accept = ctx.Accept;
+                req.UserAgent = SpoofUserAgent();
+                req.Referer = ctx.Referer;
+                req.Credentials = CredentialCache.DefaultCredentials;
+                req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                foreach (var h in ctx.Headers) req.Headers.Add(h.Key, h.Value);
+                foreach (var c in ctx.Cookies) req.Headers.Add(c.Key, c.Value);
+            }
+            return req;
+        }
+
         private void InitialiseCertificates()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
@@ -152,7 +172,21 @@ namespace Andgasm.BookieBreaker.Harvest
             agents.Add("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246");
             agents.Add("Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0");
             agents.Add("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
-            return agents.OrderBy(x => Guid.NewGuid()).First(); // hacked random
+            agents.Add("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1");
+
+
+            agents.Add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9");
+            agents.Add("Mozilla/5.0 (Linux; Android 4.4.3; KFTHWI Build/KTU84M) AppleWebKit/537.36 (KHTML, like Gecko) Silk/47.1.79 like Chrome/47.0.2526.80 Safari/537.36");
+            agents.Add("Mozilla/5.0 (Linux; Android 5.0.2; SAMSUNG SM-T550 Build/LRX22G) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/3.3 Chrome/38.0.2125.102 Safari/537.36");
+            agents.Add("Mozilla/5.0 (Linux; Android 7.0; Pixel C Build/NRD90M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/52.0.2743.98 Safari/537.36");
+            agents.Add("Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1; Microsoft; RM-1152) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Mobile Safari/537.36 Edge/15.15254");
+            agents.Add("Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1");
+
+            lock (random) // synchronize
+            {
+                var rnd = random.Next(0, agents.Count - 1);
+                return agents[rnd]; // hacked random
+            }
         }
         #endregion
     }
