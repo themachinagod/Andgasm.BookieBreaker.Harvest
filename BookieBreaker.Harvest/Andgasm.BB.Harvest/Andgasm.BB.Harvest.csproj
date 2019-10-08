@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Danny Brown</Authors>
     <Company>Andgasm</Company>
     <Description>General harvest lib for bookie breaker extraction services, supports request management and throttling as well as cookie busters.</Description>
