@@ -1,17 +1,9 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Andgasm.BookieBreaker.Harvest.WhoScored
+namespace Andgasm.BB.Harvest
 {
     public class CookieInitialiser
     {
