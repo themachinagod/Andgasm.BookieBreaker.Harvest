@@ -98,7 +98,9 @@ namespace Andgasm.BB.Harvest
                         doc.LoadHtml((await sr.ReadToEndAsync()).Trim());
                         if (doc.DocumentNode.InnerText.Contains("Request unsuccessful"))
                         {
-                            throw new Exception("Request did not fail but reurned an Incapsula request was unsuccessful!");
+                            _logger.LogError(string.Format("Incapsula request recieved - pausing service for 30s!"));
+                            await Task.Delay(30000);
+                            throw new Exception("Request did not fail but reurned an Incapsula request!");
                         }
                         _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", doc.DocumentNode.OuterLength));
                     }
