@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Andgasm.BB.Harvest", "Andgasm.BB.Harvest\Andgasm.BB.Harvest.csproj", "{0F2B4043-8902-4DDF-A85A-68D6BB40ACE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Andgasm.BB.Harvest", "Andgasm.BB.Harvest\Andgasm.BB.Harvest.csproj", "{0F2B4043-8902-4DDF-A85A-68D6BB40ACE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Andgasm.BB.Harvest.Tests", "Andgasm.BB.Harvest.Tests\Andgasm.BB.Harvest.Tests.csproj", "{42422FD9-43D2-483F-802E-96875EB6AA87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Andgasm.BB.Harvest.Tests", "Andgasm.BB.Harvest.Tests\Andgasm.BB.Harvest.Tests.csproj", "{42422FD9-43D2-483F-802E-96875EB6AA87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Andgasm.BB.Harvest.Interfaces", "Andgasm.BB.Harvest.Interfaces\Andgasm.BB.Harvest.Interfaces.csproj", "{746F0931-2C9F-4DD0-8AF2-07F9111C4A94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{42422FD9-43D2-483F-802E-96875EB6AA87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42422FD9-43D2-483F-802E-96875EB6AA87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42422FD9-43D2-483F-802E-96875EB6AA87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{746F0931-2C9F-4DD0-8AF2-07F9111C4A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{746F0931-2C9F-4DD0-8AF2-07F9111C4A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{746F0931-2C9F-4DD0-8AF2-07F9111C4A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{746F0931-2C9F-4DD0-8AF2-07F9111C4A94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

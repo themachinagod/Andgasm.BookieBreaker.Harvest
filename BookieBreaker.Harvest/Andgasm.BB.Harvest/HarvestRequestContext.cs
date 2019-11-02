@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Andgasm.BB.Harvest.Interfaces;
+using System.Collections.Generic;
 
 namespace Andgasm.BB.Harvest
 {
-    public class HarvestRequestContext
+    public class HarvestRequestContext : IHarvestRequestContext
     {
         public int Timeout { get; set; }
         public string Method {get; set;}

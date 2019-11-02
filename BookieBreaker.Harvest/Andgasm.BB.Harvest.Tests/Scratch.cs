@@ -15,7 +15,7 @@ namespace Andgasm.BB.Harvest.Tests
 
             for (int i = 0; i < 2; i++)
             {
-                var r = await hrm.MakeRequest(url, null);
+                await hrm.MakeRequest(url, null);
             }
             var ranfor = hrm.RunningTimer.Elapsed;
         }

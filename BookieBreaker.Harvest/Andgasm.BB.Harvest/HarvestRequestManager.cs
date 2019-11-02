@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using Andgasm.BB.Harvest.Interfaces;
+using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Andgasm.BB.Harvest
 {
     // use as singleton to track requests and apply throttles
     // TODO: the _requesttimes collection will grow and grow unless we trim this every so often without losing data accuracy
-    public class HarvestRequestManager 
+    public class HarvestRequestManager : IHarvestRequestManager
     {
         #region Fields
         List<TimeSpan> _requestTimes = new List<TimeSpan>();
@@ -65,7 +66,7 @@ namespace Andgasm.BB.Harvest
         #endregion
 
         #region Request Execution
-        public async Task<HtmlDocument> MakeRequest(string url, HarvestRequestContext ctx, bool isretry = false)
+        public async Task<IHarvestRequestResult> MakeRequest(string url, IHarvestRequestContext ctx, bool isretry = false)
         {
             var requestTimer = new Stopwatch();
             requestTimer.Start();
@@ -98,8 +99,7 @@ namespace Andgasm.BB.Harvest
                         doc.LoadHtml((await sr.ReadToEndAsync()).Trim());
                         if (doc.DocumentNode.InnerText.Contains("Request unsuccessful"))
                         {
-                            _logger.LogError(string.Format("Incapsula request recieved - pausing service for 30s!"));
-                            await Task.Delay(30000);
+                            _logger.LogError(string.Format("Incapsula request recieved!"));
                             throw new Exception("Request did not fail but reurned an Incapsula request!");
                         }
                         _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", doc.DocumentNode.OuterLength));
@@ -115,7 +115,11 @@ namespace Andgasm.BB.Harvest
                 throw ex;
             }
             await ApplyRequestThrottle(requestTimer);
-            return doc;
+            return new HarvestRequestResult()
+            {
+                InnerHtml = doc.DocumentNode.InnerHtml,
+                InnerText = doc.DocumentNode.InnerText
+            };
         }
         #endregion
 

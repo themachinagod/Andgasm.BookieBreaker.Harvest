@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Andgasm.BB.Harvest.Interfaces;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace Andgasm.BB.Harvest
         #endregion
 
         #region Properties
-        public HarvestRequestManager _requestmanager { get; set; }
+        public IHarvestRequestManager _requestmanager { get; set; }
         public ParallelOptions _po { get; set; }
         public TimeSpan ElapsedTime
         {
