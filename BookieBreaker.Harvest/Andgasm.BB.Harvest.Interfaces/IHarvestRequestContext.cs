@@ -15,5 +15,8 @@ namespace Andgasm.BB.Harvest.Interfaces
         List<string> SetCookies { get; set; }
         Dictionary<string, string> Headers { get; set; }
         Dictionary<string, string> Cookies { get; set; }
+
+        void AddCookie(string n, string v);
+        void AddHeader(string n, string v);
     }
 }

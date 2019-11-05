@@ -1,13 +1,21 @@
-﻿using System.Linq;
+﻿using Andgasm.BB.Harvest.Interfaces;
+using Andgasm.Http.Interfaces;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-
 namespace Andgasm.BB.Harvest
 {
-    public class CookieInitialiser
+    public class CookieInitialiser : ICookieInitialiser
     {
-        public static string GetCookieFromResponseDirectives(WebResponse resp)
+        IHttpRequestManager _httpmanager;
+
+        public CookieInitialiser(IHttpRequestManager httpmanager)
+        {
+            _httpmanager = httpmanager;
+        }
+
+        public string GetCookieFromResponseDirectives(WebResponse resp)
         {
             var realisedcookie = "";
             foreach (var sc in resp.Headers["Set-Cookie"].Split(';'))
@@ -23,10 +31,10 @@ namespace Andgasm.BB.Harvest
             return realisedcookie;
         }
 
-        public static async Task<string> GetCookieFromRootDirectives()
+        public async Task<string> GetCookieFromRootDirectives()
         {
             var realisedcookie = "";
-            var n = await Http.HttpRequestFactory.Get("https://www.whoscored.com/");
+            var n = await  _httpmanager.Get("https://www.whoscored.com/");
             foreach (var sc in n.Headers.Where(x => x.Key == "Set-Cookie"))
             {
                 foreach (var scv in sc.Value)
@@ -38,16 +46,16 @@ namespace Andgasm.BB.Harvest
             return realisedcookie;
         }
 
-        public static async Task RefreshCookieForResponseContext(WebResponse resp, HarvestRequestContext ctx)
+        public async Task RefreshCookieForResponseContext(WebResponse resp, IHarvestRequestContext ctx)
         {
             var realisedcookie = "";
             if (resp != null && resp.Headers["Set-Cookie"] != null)
             {
-                realisedcookie = CookieInitialiser.GetCookieFromResponseDirectives(resp);
+                realisedcookie = GetCookieFromResponseDirectives(resp);
             }
             else
             {
-                realisedcookie = await CookieInitialiser.GetCookieFromRootDirectives();
+                realisedcookie = await GetCookieFromRootDirectives();
             }
             ctx.Cookies.Clear();
             ctx.AddCookie("Cookie", realisedcookie);
