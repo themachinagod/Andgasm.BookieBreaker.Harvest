@@ -1,5 +1,6 @@
 ﻿using Andgasm.BB.Harvest.Interfaces;
 using Andgasm.Http.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -57,7 +58,7 @@ namespace Andgasm.BB.Harvest
             {
                 realisedcookie = await GetCookieFromRootDirectives();
             }
-            ctx.Cookies.Clear();
+            ctx.Cookies = new Dictionary<string, string>();
             ctx.AddCookie("Cookie", realisedcookie);
         }
     }

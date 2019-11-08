@@ -9,11 +9,11 @@ namespace Andgasm.BB.Harvest
     {
         #region Fields
         protected Stopwatch _timer = new Stopwatch();
+        IHarvestRequestManager _requestmanager;
+        ParallelOptions _po;
         #endregion
 
         #region Properties
-        public IHarvestRequestManager _requestmanager { get; set; }
-        public ParallelOptions _po { get; set; }
         public TimeSpan ElapsedTime
         {
             get
@@ -25,8 +25,9 @@ namespace Andgasm.BB.Harvest
         public string LastModeKey { get; set; }
         #endregion
 
-        public DataHarvest(int? maxthreads = null)
+        public DataHarvest(IHarvestRequestManager reqmanager, int? maxthreads = null)
         {
+            _requestmanager = reqmanager;
             _po = new ParallelOptions();
             _po.MaxDegreeOfParallelism = maxthreads.HasValue ? maxthreads.Value : Environment.ProcessorCount;
         }
@@ -48,6 +49,7 @@ namespace Andgasm.BB.Harvest
                 int startindex = rawdata.IndexOf("'Model-last-Mode': '") + 20;
                 int endindex = rawdata.IndexOf("' }", startindex);
                 var lastmodekey = rawdata.Substring(startindex, endindex - startindex);
+                LastModeKey = lastmodekey;
                 return lastmodekey;
             }
             catch(Exception ex)

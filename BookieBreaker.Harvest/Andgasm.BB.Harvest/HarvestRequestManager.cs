@@ -92,7 +92,6 @@ namespace Andgasm.BB.Harvest
                 InitialiseCertificates();
                 using (WebResponse resp = await req.GetResponseAsync())
                 {
-                    
                     using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
                     {
                         doc = new HtmlDocument();
