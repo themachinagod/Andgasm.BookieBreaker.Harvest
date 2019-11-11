@@ -1,16 +1,16 @@
-﻿using System;
+﻿using Andgasm.Http;
+using Andgasm.Http.Interfaces;
+using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Andgasm.BB.Harvest
 {
     public class HarvestHelper
     {
-        public static HarvestRequestContext ConstructRequestContext(string lastmodekey, string accept, string referer, string cookiestring, string acceptlang, bool isxhr, bool upgradeinsecure, bool hascachecontrol)
+        public static IHttpRequestContext ConstructRequestContext(string lastmodekey, string accept, string referer, string cookiestring, string acceptlang, bool isxhr, bool upgradeinsecure, bool hascachecontrol)
         {
             // this is for direct data retrieval (player data fixtures)
-            HarvestRequestContext ctx = new HarvestRequestContext();
+            IHttpRequestContext ctx = new HttpRequestContext();
             ctx.Method = "GET";
             ctx.Host = "www.whoscored.com";
             ctx.Accept = accept;
@@ -51,8 +51,8 @@ namespace Andgasm.BB.Harvest
 
         public static void FinaliseTimer(Stopwatch timer)
         {
-                timer.Stop();
-                Console.WriteLine(string.Format("Completed execution of harvest in {0} seconds.", (timer.Elapsed.TotalSeconds)));
+            timer.Stop();
+            Console.WriteLine(string.Format("Completed execution of harvest in {0} seconds.", (timer.Elapsed.TotalSeconds)));
         }
     }
 }

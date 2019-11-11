@@ -1,14 +1,14 @@
 ﻿
 using Andgasm.BB.Harvest.Interfaces;
+using Andgasm.Http.Interfaces;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Andgasm.BB.Harvest
 {
     public interface ICookieInitialiser
     {
-        string GetCookieFromResponseDirectives(WebResponse resp);
         Task<string> GetCookieFromRootDirectives();
-        Task RefreshCookieForResponseContext(WebResponse resp, IHarvestRequestContext ctx);
     }
 }

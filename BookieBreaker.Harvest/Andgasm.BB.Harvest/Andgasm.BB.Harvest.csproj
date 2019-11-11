@@ -6,7 +6,7 @@
     <Company>Andgasm</Company>
     <Description>General harvest lib for bookie breaker extraction services, supports request management and throttling as well as cookie busters.</Description>
     <Product>Andgasm.BookieBreaker.Harvest</Product>
-    <Version>0.1.8</Version>
+    <Version>0.2.13</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/themachinagod/Andgasm.BookieBreaker.Harvest</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Andgasm.Http" Version="0.1.1" />
+    <PackageReference Include="Andgasm.Http" Version="0.2.5" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.15" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
   </ItemGroup>

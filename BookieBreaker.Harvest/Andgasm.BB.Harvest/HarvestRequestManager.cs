@@ -1,4 +1,5 @@
 ﻿using Andgasm.BB.Harvest.Interfaces;
+using Andgasm.Http.Interfaces;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace Andgasm.BB.Harvest
 {
-    // use as singleton to track requests and apply throttles
     // TODO: the _requesttimes collection will grow and grow unless we trim this every so often without losing data accuracy
     public class HarvestRequestManager : IHarvestRequestManager
     {
         #region Fields
         List<TimeSpan> _requestTimes = new List<TimeSpan>();
+        IHttpRequestManager _httpManager;
         #endregion
 
         #region Properties
@@ -55,8 +56,9 @@ namespace Andgasm.BB.Harvest
         #endregion
 
         #region Constructors
-        public HarvestRequestManager(ILogger<HarvestRequestManager> logger, int maxrequestspermin = 30)
+        public HarvestRequestManager(ILogger<HarvestRequestManager> logger, IHttpRequestManager httpmanager, int maxrequestspermin = 30)
         {
+            _httpManager = httpmanager;
             _logger = logger;
             MaxRequestsPerMin = maxrequestspermin;
 
@@ -66,7 +68,7 @@ namespace Andgasm.BB.Harvest
         #endregion
 
         #region Request Execution
-        public async Task<IHarvestRequestResult> MakeRequest(string url, IHarvestRequestContext ctx, bool isretry = false)
+        public async Task<IHarvestRequestResult> MakeRequest(string url, IHttpRequestContext ctx, bool isretry = false)
         {
             var requestTimer = new Stopwatch();
             requestTimer.Start();
@@ -74,35 +76,18 @@ namespace Andgasm.BB.Harvest
             try
             {
                 _logger.LogDebug(string.Format("Making web request: {0}", url));
-                HttpWebRequest req = WebRequest.CreateHttp(url);
-                if (ctx != null)
-                {
-                    req.Timeout = ctx.Timeout;
-                    req.Method = ctx.Method;
-                    req.Host = ctx.Host;
-                    req.Accept = ctx.Accept;
-                    req.UserAgent = SpoofUserAgent();
-                    req.Referer = ctx.Referer;
-                    req.Credentials = CredentialCache.DefaultCredentials;
-                    req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                    foreach(var h in ctx.Headers) req.Headers.Add(h.Key, h.Value);
-                    foreach (var c in ctx.Cookies) req.Headers.Add(c.Key, c.Value);
-                }
-
+                ctx.UserAgent = SpoofUserAgent();
                 InitialiseCertificates();
-                using (WebResponse resp = await req.GetResponseAsync())
+                using (var resp = await _httpManager.Get(url, ctx))
                 {
-                    using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
+                    doc = new HtmlDocument();
+                    doc.LoadHtml((await resp.Content.ReadAsStringAsync()).Trim());
+                    if (doc.DocumentNode.InnerText.Contains("Request unsuccessful"))
                     {
-                        doc = new HtmlDocument();
-                        doc.LoadHtml((await sr.ReadToEndAsync()).Trim());
-                        if (doc.DocumentNode.InnerText.Contains("Request unsuccessful"))
-                        {
-                            _logger.LogError(string.Format("Incapsula request recieved!"));
-                            throw new Exception("Request did not fail but reurned an Incapsula request!");
-                        }
-                        _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", doc.DocumentNode.OuterLength));
+                        _logger.LogError(string.Format("Incapsula request recieved!"));
+                        throw new Exception("Request did not fail but reurned an Incapsula request!");
                     }
+                    _logger.LogDebug(string.Format("Web request response successfully recieved & serialised to cache: {0}bytes", doc.DocumentNode.OuterLength));
                 }
                 LastRequestFailed = false;
             }

@@ -9,7 +9,7 @@ namespace Andgasm.BB.Harvest
     {
         #region Fields
         protected Stopwatch _timer = new Stopwatch();
-        IHarvestRequestManager _requestmanager;
+        protected IHarvestRequestManager _requestmanager;
         ParallelOptions _po;
         #endregion
 
