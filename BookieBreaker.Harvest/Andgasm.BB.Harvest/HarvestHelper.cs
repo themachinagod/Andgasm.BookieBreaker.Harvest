@@ -18,7 +18,7 @@ namespace Andgasm.BB.Harvest
             ctx.Referer = referer;
             
             ctx.AddHeader("Accept-Encoding", "gzip, deflate, br");
-            ctx.AddHeader("Accept-Language", acceptlang == null ? "en-GB,en;q=0.5" : acceptlang);
+            ctx.AddHeader("Accept-Language", acceptlang == null ? "en-GB,en;q=0.9" : acceptlang);
             if (isxhr)
             {
                 ctx.AddHeader("X-Requested-With", "XMLHttpRequest");
