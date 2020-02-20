@@ -76,7 +76,6 @@ namespace Andgasm.BB.Harvest
             try
             {
                 _logger.LogDebug(string.Format("Making web request: {0}", url));
-                ctx.UserAgent = SpoofUserAgent();
                 InitialiseCertificates();
                 using (var resp = await _httpManager.Get(url, ctx))
                 {
