@@ -16,7 +16,7 @@ namespace Andgasm.BB.Harvest
 
         public async Task<string> GetCookieFromRootDirectives()
         {
-            var realisedcookie = "incap_ses_873_774904=EhSmQCeluBiOhwgB7oUdDFhcTl4AAAAAmMbOzvUcDK2F8K4stCSdrQ=="; 
+            var realisedcookie = ""; 
             var pctx = ConstructRequestContext(realisedcookie);
             var n = await  _httpmanager.Get("https://www.whoscored.com/", pctx);
             foreach (var sc in n.Headers.Where(x => x.Key == "Set-Cookie"))
@@ -27,7 +27,7 @@ namespace Andgasm.BB.Harvest
                     realisedcookie = $"{realisedcookie}; {v}";
                 }
             }
-            return realisedcookie;
+            return realisedcookie.Substring(2);
         }
 
         private HttpRequestContext ConstructRequestContext(string cookieinit)
@@ -38,9 +38,9 @@ namespace Andgasm.BB.Harvest
             pctx.AddHeader("Accept", "text/html, application/xhtml+xml, image/jxr, */*");
             pctx.AddHeader("Accept-Language", "en-GB,en-US;q=0.7,en;q=0.3");
             pctx.AddHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko");
-            pctx.AddHeader("Accept-Encoding", "");
+            pctx.AddHeader("Accept-Encoding", "gzip, deflate");
             pctx.AddHeader("Host", "www.whoscored.com");
-            pctx.AddCookie("Cookie", cookieinit);
+            //pctx.AddCookie("Cookie", cookieinit);
             return pctx;
         }
     }
